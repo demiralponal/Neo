@@ -8,7 +8,7 @@ import streamlit as st
 from streamlit_oauth import OAuth2Component
 
 # Sayfa Yapılandırması
-st.set_page_config(page_title="Neo AI", page_icon="🤖", layout="centered")
+st.set_page_config(page_title="Neo AI - Future Intelligence", page_icon="⚡", layout="centered")
 
 # Değişkenleri Okuma
 def get_secret(key_name, default_val=""):
@@ -45,44 +45,113 @@ oauth2 = OAuth2Component(
 SMTP_GENDEREN_EPOSTA = get_secret("SMTP_GENDEREN_EPOSTA")
 SMTP_UYGULAMA_SIFRESI = get_secret("SMTP_UYGULAMA_SIFRESI")
 
-# Custom CSS - Modern Koyu Tema
+# --- GELİŞMİŞ ANİMASYONLU VE RENKLİ CSS ---
 st.markdown("""
     <style>
-    .stApp {
-        background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
-        color: #c9d1d9;
+    /* Animasyonlu Renkli Arka Plan */
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
-    h1 {
-        background: linear-gradient(90deg, #58a6ff 0%, #bc8cff 100%);
+
+    .stApp {
+        background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a0826);
+        background-size: 400% 400%;
+        animation: gradientBG 12s ease infinite;
+        color: #ffffff;
+    }
+
+    /* Parlayan Animasyonlu Başlık */
+    @keyframes glow {
+        0% { text-shadow: 0 0 10px #00f2fe, 0 0 20px #00f2fe; }
+        50% { text-shadow: 0 0 20px #4facfe, 0 0 30px #00f2fe; }
+        100% { text-shadow: 0 0 10px #00f2fe, 0 0 20px #00f2fe; }
+    }
+
+    .glow-title {
+        font-size: 3rem !important;
+        font-weight: 900;
+        text-align: center;
+        background: linear-gradient(90deg, #00f2fe 0%, #4facfe 50%, #00c6ff 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 800 !important;
+        animation: glow 3s infinite alternate;
+        margin-bottom: 5px;
     }
-    [data-testid="stChatMessage"] {
-        background-color: rgba(22, 27, 34, 0.8);
-        border: 1px solid rgba(48, 54, 61, 0.8);
-        border-radius: 14px;
-        padding: 14px 18px;
-        margin-bottom: 12px;
+
+    .sub-title {
+        text-align: center;
+        color: #b3c5ff;
+        font-size: 1.1rem;
+        margin-bottom: 25px;
     }
+
+    /* Cam Efektli Modern Kartlar (Glassmorphism) */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        transition: transform 0.3s ease;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-3px);
+        border: 1px solid rgba(0, 242, 254, 0.4);
+    }
+
+    /* Animasyonlu Renkli Butonlar */
     .stButton > button {
-        background: linear-gradient(90deg, #238636 0%, #2ea043 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        padding: 8px 20px;
+        background: linear-gradient(45deg, #00f2fe, #4facfe);
+        color: #000000 !important;
+        font-weight: 800 !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 12px 24px !important;
+        transition: all 0.3s ease-in-out !important;
+        box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
     }
+
+    .stButton > button:hover {
+        transform: scale(1.03);
+        box-shadow: 0 6px 25px rgba(79, 172, 254, 0.8);
+        color: #ffffff !important;
+    }
+
+    /* Chat Balonları */
+    [data-testid="stChatMessage"] {
+        background: rgba(15, 23, 42, 0.6) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 242, 254, 0.2);
+        border-radius: 18px;
+        padding: 15px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Input Kutuları */
     .stTextInput > div > div > input {
-        background-color: #0d1117;
-        color: #c9d1d9;
-        border: 1px solid #30363d;
-        border-radius: 8px;
+        background-color: rgba(15, 23, 42, 0.7) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0, 242, 254, 0.3) !important;
+        border-radius: 12px !important;
     }
+
+    .stTextInput > div > div > input:focus {
+        border-color: #00f2fe !important;
+        box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+    }
+
+    /* Alt Chat Kutusu */
     [data-testid="stChatInput"] {
-        border-radius: 14px;
-        border: 1px solid #30363d;
-        background-color: #161b22;
+        border-radius: 18px;
+        border: 1px solid rgba(0, 242, 254, 0.4);
+        background-color: rgba(15, 23, 42, 0.8);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -115,12 +184,31 @@ if "otp_code" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Giriş Ekranı
+# --- GİRİŞ EKRANI ---
 if not st.session_state.authenticated:
-    st.title("🤖 Neo AI")
-    st.markdown("##### Geleceğin Yapay Zeka Deneyimine Hoş Geldiniz")
-    st.divider()
+    st.markdown('<div class="glow-title">⚡ NEO AI</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-title">Yapay Zekanın Yeni Nesil Arayüzü</div>', unsafe_allow_html=True)
 
+    # Görsel Kartlar
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        st.markdown('''
+            <div class="glass-card">
+                <h4>🚀 Ultra Hızlı</h4>
+                <p style="font-size: 0.85rem; color: #a1a1aa;">Gemini altyapısı ile anında yüksek performanslı yanıtlar alın.</p>
+            </div>
+        ''', unsafe_allow_html=True)
+    with col_f2:
+        st.markdown('''
+            <div class="glass-card">
+                <h4>🔒 Güvenli Giriş</h4>
+                <p style="font-size: 0.85rem; color: #a1a1aa;">Google OAuth veya OTP doğrulama kodu ile anında oturum açın.</p>
+            </div>
+        ''', unsafe_allow_html=True)
+
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    
+    # Google ile Giriş
     result = oauth2.authorize_button(
         name="🌐 Google Hesabı ile Giriş Yap",
         icon="https://www.google.com/favicon.ico",
@@ -137,16 +225,17 @@ if not st.session_state.authenticated:
 
     st.divider()
 
-    st.subheader("E-posta ile Hızlı Giriş")
-    email_input = st.text_input("E-posta Adresiniz", placeholder="ornek@gmail.com")
+    # E-posta ile Giriş
+    st.markdown("##### ✉️ E-posta ile Hızlı Giriş")
+    email_input = st.text_input("", placeholder="E-posta adresinizi girin (örn: isim@gmail.com)")
 
-    if st.button("Doğrulama Kodu Gönder", use_container_width=True):
+    if st.button("✨ Doğrulama Kodu Gönder", use_container_width=True):
         if "@" in email_input and "." in email_input:
             generated_code = str(random.randint(100000, 999999))
             st.session_state.otp_code = generated_code
             st.session_state.user_email = email_input
 
-            with st.spinner("Kod iletiliyor..."):
+            with st.spinner("Kod oluşturuluyor..."):
                 basarili = eposta_gonder(email_input, generated_code)
                 if basarili:
                     st.success(f"Doğrulama kodu **{email_input}** adresine e-posta ile gönderildi!")
@@ -158,8 +247,8 @@ if not st.session_state.authenticated:
 
     if st.session_state.otp_code:
         st.divider()
-        user_otp = st.text_input("6 Haneli Doğrulama Kodu", max_chars=6)
-        if st.button("Sisteme Giriş Yap", use_container_width=True):
+        user_otp = st.text_input("🔑 6 Haneli Doğrulama Kodu", max_chars=6)
+        if st.button("🚀 Sisteme Giriş Yap", use_container_width=True):
             if user_otp == st.session_state.otp_code:
                 st.session_state.authenticated = True
                 st.session_state.otp_code = None
@@ -168,31 +257,33 @@ if not st.session_state.authenticated:
             else:
                 st.error("Girdiğiniz kod hatalı!")
 
-# Sohbet Ekranı
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- SOHBET EKRANI ---
 else:
     col_title, col_logout = st.columns([4, 1])
     with col_title:
-        st.title("🤖 Neo AI")
+        st.markdown('<h2 style="color: #00f2fe; font-weight: 800;">⚡ Neo AI</h2>', unsafe_allow_html=True)
     with col_logout:
-        if st.button("Çıkış Yap"):
+        if st.button("Çıkış"):
             st.session_state.authenticated = False
             st.session_state.messages = []
             st.rerun()
 
-    st.caption(f"Aktif Kullanıcı: **{st.session_state.user_email}**")
+    st.caption(f"Ağ Durumu: **Aktif** | Oturum: **{st.session_state.user_email}**")
     st.divider()
 
     for message in st.session_state.messages:
-        avatar = "🤖" if message["role"] == "assistant" else "👤"
+        avatar = "⚡" if message["role"] == "assistant" else "👤"
         with st.chat_message(message["role"], avatar=avatar):
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("Neo'ya bir soru sorun..."):
+    if prompt := st.chat_input("Neo'ya bir şeyler yazın..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar="👤"):
             st.markdown(prompt)
 
-        with st.chat_message("assistant", avatar="🤖"):
+        with st.chat_message("assistant", avatar="⚡"):
             message_placeholder = st.empty()
 
             if model:
