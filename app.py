@@ -8,7 +8,9 @@ import streamlit as st
 from streamlit_oauth import OAuth2Component
 
 # Sayfa Yapılandırması
-st.set_page_config(page_title="Neo", page_icon="💬", layout="centered")
+st.set_page_config(
+    page_title="Neo AI - Akıllı Asistan", page_icon="🤖", layout="centered"
+)
 
 
 # Değişkenleri Okuma
@@ -47,62 +49,94 @@ oauth2 = OAuth2Component(
 SMTP_GENDEREN_EPOSTA = get_secret("SMTP_GENDEREN_EPOSTA")
 SMTP_UYGULAMA_SIFRESI = get_secret("SMTP_UYGULAMA_SIFRESI")
 
-# --- SADE VE PREMİUM CSS (DARK MODE) ---
+# --- ÖZEL MODERN TASARIM VE RENK PALETİ ---
 st.markdown(
     """
     <style>
-    /* Ana Arka Plan */
+    /* Ana Arka Plan - Derin Lacivert & Koyu Gri */
     .stApp {
-        background-color: #0e1117;
-        color: #e6e9ef;
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        color: #f1f5f9;
     }
     
-    /* Konteyner ve Kart Yapısı */
-    .auth-card {
-        background-color: #161b22;
-        border: 1px solid #30363d;
+    /* Kapak / Başlık Bölümü */
+    .hero-container {
+        text-align: center;
+        padding: 30px 10px 10px 10px;
+    }
+    .hero-title {
+        font-size: 2.8rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #38bdf8 0%, #818cf8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 5px;
+    }
+    .hero-subtitle {
+        color: #94a3b8;
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+    }
+
+    /* Bilgi Kartları (Giriş Ekranı Doldurma) */
+    .feature-card {
+        background-color: rgba(30, 41, 59, 0.7);
+        border: 1px solid #334155;
         border-radius: 12px;
-        padding: 24px;
-        margin-top: 10px;
+        padding: 16px;
+        text-align: center;
+        margin-bottom: 15px;
     }
-    
-    /* Butonlar */
+    .feature-card h4 {
+        color: #38bdf8;
+        margin-bottom: 5px;
+        font-size: 1rem;
+    }
+    .feature-card p {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    /* Buton Tasarımı */
     .stButton > button {
-        background-color: #238636;
+        background: linear-gradient(90deg, #0284c7 0%, #2563eb 100%);
         color: #ffffff;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 600;
-        padding: 10px 16px;
-        transition: background-color 0.2s ease;
+        padding: 10px 20px;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
     }
-    
     .stButton > button:hover {
-        background-color: #2ea043;
+        background: linear-gradient(90deg, #0369a1 0%, #1d4ed8 100%);
         color: #ffffff;
     }
 
     /* Input Alanları */
     .stTextInput > div > div > input {
-        background-color: #0d1117;
-        color: #f0f6fc;
-        border: 1px solid #30363d;
-        border-radius: 8px;
+        background-color: #0f172a;
+        color: #f8fafc;
+        border: 1px solid #334155;
+        border-radius: 10px;
     }
 
     /* Chat Balonları */
     [data-testid="stChatMessage"] {
-        background-color: #161b22;
-        border: 1px solid #21262d;
-        border-radius: 12px;
-        padding: 12px 16px;
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 14px;
+        padding: 12px 18px;
     }
-    
-    /* Chat Input Alt Kısım */
-    [data-testid="stChatInput"] {
-        background-color: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 12px;
+
+    /* Sayfa Alt Bilgisi (Footer) */
+    .footer {
+        text-align: center;
+        color: #64748b;
+        font-size: 0.8rem;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #334155;
     }
     </style>
 """,
@@ -114,11 +148,11 @@ def eposta_gonder(alici_eposta, kod):
   if not SMTP_GENDEREN_EPOSTA or not SMTP_UYGULAMA_SIFRESI:
     return False
   try:
-    konu = "Neo - Giriş Kodunuz"
-    icerik = f"Neo hesabınıza giriş yapmak için doğrulama kodunuz: {kod}"
+    konu = "Neo AI - Oturum Doğrulama Kodu"
+    icerik = f"Neo AI sistemine giriş için kullanabileceğiniz doğrulama kodunuz: {kod}"
     mesaj = MIMEText(icerik, "plain", "utf-8")
     mesaj["Subject"] = konu
-    mesaj["From"] = f"Neo <{SMTP_GENDEREN_EPOSTA}>"
+    mesaj["From"] = f"Neo AI <{SMTP_GENDEREN_EPOSTA}>"
     mesaj["To"] = alici_eposta
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
@@ -141,12 +175,58 @@ if "messages" not in st.session_state:
 
 # --- GİRİŞ EKRANI ---
 if not st.session_state.authenticated:
-  st.title("Neo")
-  st.caption("Yapay Zeka Asistanı")
+  # Kapak Başlığı
+  st.markdown(
+      """
+      <div class="hero-container">
+          <div class="hero-title">🤖 Neo AI</div>
+          <div class="hero-subtitle">Yeni Nesil Akıllı Asistan Deneyimi</div>
+      </div>
+  """,
+      unsafe_allow_html=True,
+  )
+
+  # Özellik Kartları (Ekranı Zenginleştiren Alan)
+  col1, col2, col3 = st.columns(3)
+  with col1:
+    st.markdown(
+        """
+        <div class="feature-card">
+            <h4>⚡ Hızlı Yanıt</h4>
+            <p>Sorularınıza anında akıllı çözümler alın.</p>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+  with col2:
+    st.markdown(
+        """
+        <div class="feature-card">
+            <h4>💻 Kod & Analiz</h4>
+            <p>Yazılım ve içerik üretimi desteği.</p>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+  with col3:
+    st.markdown(
+        """
+        <div class="feature-card">
+            <h4>🔒 Güvenli</h4>
+            <p>E-posta veya Google ile doğrulama yapın.</p>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+  st.write("")
+
+  # Giriş Seçenekleri
+  st.subheader("Giriş Yap")
 
   # Google ile Giriş
   result = oauth2.authorize_button(
-      name="Google ile Giriş Yap",
+      name="Google Hesabı ile Devam Et",
       icon="https://www.google.com/favicon.ico",
       redirect_uri="https://share.streamlit.app",
       scope="openid email profile",
@@ -156,15 +236,14 @@ if not st.session_state.authenticated:
   if result and "token" in result:
     st.session_state.authenticated = True
     st.session_state.user_email = "Google Kullanıcısı"
-    st.success("Giriş yapıldı.")
     st.rerun()
 
   st.divider()
 
   # E-posta ile Giriş
-  st.subheader("E-posta ile Oturum Aç")
+  st.markdown("##### E-posta ile Doğrulama")
   email_input = st.text_input(
-      "E-posta Adresi", placeholder="ornek@domain.com", label_visibility="collapsed"
+      "E-posta Adresi", placeholder="ornek@gmail.com", label_visibility="collapsed"
   )
 
   if st.button("Doğrulama Kodu Gönder", use_container_width=True):
@@ -173,43 +252,56 @@ if not st.session_state.authenticated:
       st.session_state.otp_code = generated_code
       st.session_state.user_email = email_input
 
-      with st.spinner("Kod gönderiliyor..."):
+      with st.spinner("Kod iletiliyor..."):
         basarili = eposta_gonder(email_input, generated_code)
         if basarili:
-          st.success(f"Kod **{email_input}** adresine gönderildi.")
+          st.success(
+              f"Doğrulama kodu **{email_input}** adresine e-posta ile gönderildi!"
+          )
         else:
-          st.info(f"Kod oluşturuldu. Test Kodunuz: **{generated_code}**")
+          st.info(f"🔑 Test Kodunuz: **{generated_code}**")
     else:
       st.error("Lütfen geçerli bir e-posta adresi girin.")
 
   if st.session_state.otp_code:
     st.write("")
     user_otp = st.text_input(
-        "Doğrulama Kodu",
+        "6 Haneli Kodu Girin",
         max_chars=6,
-        placeholder="6 haneli kod",
+        placeholder="123456",
         label_visibility="collapsed",
     )
-    if st.button("Giriş Yap", use_container_width=True):
+    if st.button("Giriş Yap ve Başla", use_container_width=True):
       if user_otp == st.session_state.otp_code:
         st.session_state.authenticated = True
         st.session_state.otp_code = None
         st.rerun()
       else:
-        st.error("Kod hatalı.")
+        st.error("Girdiğiniz kod hatalı!")
+
+  # Sayfa Altı Zenginleştirme (Alt Bilgiler)
+  st.markdown(
+      """
+      <div class="footer">
+          <p>Neo AI Engine v2.0 • Gemini Altyapısı ile Güçlendirilmiştir</p>
+          <p>© 2026 Neo Inc. Tüm hakları saklıdır.</p>
+      </div>
+  """,
+      unsafe_allow_html=True,
+  )
 
 # --- SOHBET EKRANI ---
 else:
   col_title, col_logout = st.columns([5, 1])
   with col_title:
-    st.title("Neo")
+    st.title("🤖 Neo AI")
   with col_logout:
-    if st.button("Çıkış"):
+    if st.button("Çıkış Yap"):
       st.session_state.authenticated = False
       st.session_state.messages = []
       st.rerun()
 
-  st.caption(f"Oturum: {st.session_state.user_email}")
+  st.caption(f"Aktif Kullanıcı: **{st.session_state.user_email}**")
   st.divider()
 
   for message in st.session_state.messages:
@@ -217,7 +309,7 @@ else:
     with st.chat_message(message["role"], avatar=avatar):
       st.markdown(message["content"])
 
-  if prompt := st.chat_input("Bir mesaj yazın..."):
+  if prompt := st.chat_input("Neo'ya bir soru sorun..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user", avatar="👤"):
       st.markdown(prompt)
@@ -228,7 +320,7 @@ else:
       if model:
         try:
           system_instruction = (
-              "Senin adın Neo. Yardımsever, net ve zeki bir yapay zeka"
+              "Senin adın Neo. Yardımsever, samimi ve zeki bir yapay zeka"
               " asistanısın."
           )
           response = model.generate_content(
@@ -236,10 +328,11 @@ else:
           )
           full_response = response.text
         except Exception as e:
-          full_response = f"Hata oluştu: {e}"
+          full_response = f"Bir bağlantı hatası oluştu: {e}"
       else:
         full_response = (
-            "API anahtarı eksik. Lütfen GEMINI_API_KEY tanımını kontrol edin."
+            "API anahtarı bulunamadı. Lütfen Secrets bölümünden GEMINI_API_KEY"
+            " tanımını kontrol edin."
         )
 
       typed_response = ""
