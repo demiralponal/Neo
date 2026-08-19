@@ -69,7 +69,8 @@ resend.api_key = st.secrets.get("RESEND_API_KEY", "")
 
 if "GEMINI_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("models/gemini-1.5-flash")
+    # Düzeltilen model ismi:
+    model = genai.GenerativeModel("gemini-1.5-flash")
 else:
     st.error("GEMINI_API_KEY Secrets kutusunda bulunamadı!")
 
