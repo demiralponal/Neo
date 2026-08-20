@@ -1,174 +1,175 @@
-from flask import Flask, render_template_string, request, redirect, url_for
+import streamlit as st
 
-app = Flask(__name__)
+# Sayfa Yapılandırması
+st.set_page_config(page_title="Neo - Yapay Zeka", page_icon="🤖", layout="centered")
 
-# --- TEMPLATE: Kayıt Sayfası (Görsel 6 & 7 Entegre) ---
-HTML_REGISTER = """
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Neo - Türkiye'nin Yeni Yapay Zekası</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #fcf9f2; color: #2d3748; display: flex; justify-content: center; padding: 20px 10px; }
-    .container { width: 100%; max-width: 500px; background-color: #fdfbf7; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-    .hero-banner { background-color: #2cb67d; color: #ffffff; padding: 35px 20px 25px 20px; text-align: center; }
-    .hero-banner h1 { font-family: 'Georgia', serif; font-size: 32px; font-weight: 500; margin-bottom: 5px; }
-    .hero-banner p { font-size: 14px; opacity: 0.9; margin-bottom: 25px; }
-    .btn-register { display: inline-block; background-color: #ffffff; color: #1a1a1a; padding: 10px 24px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .section-title { font-family: 'Georgia', serif; color: #2cb67d; font-size: 26px; text-align: center; margin: 30px 0 20px 0; font-weight: 500; }
-    .cards-grid { display: flex; justify-content: space-between; gap: 10px; padding: 0 15px; margin-bottom: 35px; }
-    .card { flex: 1; border-radius: 12px; padding: 15px 8px; text-align: center; min-height: 140px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
-    .card-purple { background-color: #d17bb8; color: #ffffff; }
-    .card-green { background-color: #2cb67d; color: #ffffff; }
-    .card-yellow { background-color: #f7e1a0; color: #333333; }
-    .card p { font-size: 11px; line-height: 1.3; font-weight: 500; }
-    .action-section { padding: 0 20px; margin-bottom: 30px; }
-    .action-title { font-family: 'Georgia', serif; color: #2cb67d; font-size: 24px; line-height: 1.2; margin-bottom: 20px; }
-    .form-container { background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 25px 20px; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-    .form-title { font-family: 'Impact', 'Arial Black', sans-serif; font-size: 28px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 15px; color: #000000; }
-    .form-group { margin-bottom: 18px; text-align: left; }
-    .form-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #000000; }
-    .form-group input { width: 100%; padding: 12px; border: 1px solid #333333; font-size: 14px; outline: none; }
-    .btn-submit { width: 100%; background-color: #2cb67d; color: #ffffff; border: none; padding: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px; }
-    .btn-submit:hover { background-color: #249667; }
-    .footer { text-align: center; padding: 20px 15px 30px 15px; font-size: 12px; color: #666666; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="hero-banner">
-      <h1>Neo'ya hoşgeldiniz</h1>
-      <p>Türkiye'nin yeni yapay zekası</p>
-      <a href="#kayit-formu" class="btn-register">KAYIT OLMAK İSTİYORUM</a>
-    </div>
+# --- OTURUM VE DURUM (SESSION STATE) YÖNETİMİ ---
+if "page" not in st.session_state:
+    st.session_state.page = "register"
 
-    <h2 class="section-title">Neler beklemelisiniz?</h2>
+if "maintenance_mode" not in st.session_state:
+    st.session_state.maintenance_mode = False
+
+if "admin_logged_in" not in st.session_state:
+    st.session_state.admin_logged_in = False
+
+if "total_views" not in st.session_state:
+    st.session_state.total_views = 0
+
+if "registered_users" not in st.session_state:
+    st.session_state.registered_users = []
+
+# Ziyaretçi sayacını artır
+st.session_state.total_views += 1
+
+# Sayfa Değiştirme Fonksiyonu
+def navigate_to(page_name):
+    st.session_state.page = page_name
+
+# URL Parametresi Kontrolü (?page=admin kontrolü)
+query_params = st.query_params
+if query_params.get("page") == "admin" and st.session_state.page != "admin":
+    st.session_state.page = "admin"
+
+# --- CSS STİLLERİ ---
+st.markdown("""
+    <style>
+    .stApp { background-color: #fcf9f2; }
+    .hero-banner { background-color: #2cb67d; color: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 25px; }
+    .hero-banner h1 { font-family: 'Georgia', serif; margin-bottom: 5px; }
+    .card { background-color: #ffffff; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #e0e0e0; }
+    .admin-card { background-color: #ffffff; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- BAKIM MODU KONTROLÜ ---
+# Yönetici haricindeki kullanıcılar bakım modundayken bu ekranı görür
+if st.session_state.maintenance_mode and st.session_state.page != "admin":
+    st.error("🛠️ **SİSTEM BAKIMDA**")
+    st.info("Neo şu anda bakımdadır. Lütfen daha sonra tekrar deneyiniz.")
+    st.stop()
+
+# --- 1. SAYFA: KAYIT EKRANI ---
+if st.session_state.page == "register":
+    st.markdown("""
+        <div class="hero-banner">
+            <h1>Neo'ya hoşgeldiniz</h1>
+            <p>Türkiye'nin yeni yapay zekası</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.subheader("Neler beklemelisiniz?")
+    col1, col2, col3 = st.columns(3)
     
-    <div class="cards-grid">
-      <div class="card card-purple"><p>DJ'ler nostaljik şarkılar ve dans hitleri çalıyor</p></div>
-      <div class="card card-green"><p>Özel menü<br>ve içecekler</p></div>
-      <div class="card card-yellow"><p>Neon<br>fotoğraf kabini</p></div>
-    </div>
+    with col1:
+        st.markdown("<div class='card' style='background-color: #d17bb8; color: white;'>DJ'ler nostaljik şarkılar ve dans hitleri çalıyor</div>", unsafe_allow_html=True)
+    with col2:
+        st.markdown("<div class='card' style='background-color: #2cb67d; color: white;'>Özel menü<br>ve içecekler</div>", unsafe_allow_html=True)
+    with col3:
+        st.markdown("<div class='card' style='background-color: #f7e1a0;'>Neon<br>fotoğraf kabini</div>", unsafe_allow_html=True)
 
-    <div class="action-section">
-      <h2 class="action-title">Burdan kayıt<br>ve giriş<br>işlemlerini<br>yapabilirsin</h2>
-
-      <div id="kayit-formu" class="form-container">
-        <h3 class="form-title">NEO KAYIT FORMU</h3>
-        <form action="/register" method="POST">
-          <div class="form-group">
-            <label for="email">E posta</label>
-            <input type="email" id="email" name="email" required>
-          </div>
-          <div class="form-group">
-            <label for="fullname">Ad soyad</label>
-            <input type="text" id="fullname" name="fullname" required>
-          </div>
-          <div class="form-group">
-            <label for="password">Şifre</label>
-            <input type="password" id="password" name="password" required>
-          </div>
-          <button type="submit" class="btn-submit">Kayıt Ol ve Doğrula</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="footer">
-      <p>Neo yeni yapay zeka tüm hakları saklıdır</p>
-    </div>
-  </div>
-</body>
-</html>
-"""
-
-# --- TEMPLATE: Doğrulama Ekranı (Görsel 1, 2, 3, 4, 5 Entegre) ---
-HTML_VERIFY = """
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Neo - E-Posta Doğrulama</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f4f4f7; display: flex; justify-content: center; align-items: center; padding: 20px; }
-    .email-card { width: 100%; max-width: 500px; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); text-align: center; }
-    .header-banner { background: linear-gradient(135deg, #f7b733 0%, #fc4a1a 40%, #e14efa 70%, #ff007f 100%); padding: 40px 20px 30px 20px; color: #ffffff; }
-    .header-banner h1 { font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 15px; }
-    .header-banner p { font-size: 13px; opacity: 0.95; max-width: 380px; margin: 0 auto; }
-    .content-area { padding: 30px 20px; }
-    .code-title { font-family: "Courier New", Courier, monospace; font-size: 18px; font-weight: 700; color: #333333; margin-bottom: 20px; }
-    .features-grid { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 30px; }
-    .feature-card { flex: 1; background-color: #ffffff; border: 1px solid #eaeaea; border-radius: 12px; padding: 15px 8px; display: flex; flex-direction: column; align-items: center; }
-    .feature-card img { width: 48px; height: 48px; object-fit: contain; margin-bottom: 12px; }
-    .feature-card p { font-size: 12px; color: #444444; font-weight: 600; }
-    .neo-btn { display: inline-block; width: 160px; padding: 12px 0; background: linear-gradient(135deg, #ff8a00, #e52e71); color: #ffffff; font-size: 15px; font-weight: 700; border-radius: 25px; text-decoration: none; margin-bottom: 10px; }
-    .divider { height: 1px; background: linear-gradient(90deg, #ff8a00 0%, #e52e71 50%, #8a238c 100%); margin: 20px 0 25px 0; opacity: 0.6; }
-    .footer { font-size: 12px; color: #666666; line-height: 1.6; }
-  </style>
-</head>
-<body>
-  <div class="email-card">
-    <div class="header-banner">
-      <h1>Neo–e posta<br>doğrulama<br>kodunuz</h1>
-      <p>Bu kodu hiç kimseyle paylaşmamakla birlikte bu E postaya yanıt vermeyin</p>
-    </div>
-
-    <div class="content-area">
-      <div class="code-title">Doğrulama kodu</div>
-
-      <div class="features-grid">
-        <div class="feature-card">
-          <img src="{{ url_for('static', filename='image_2.png') }}" alt="Hatasız ve sınırsız">
-          <p>Hatasız ve<br>sınırsız∞</p>
-        </div>
-        <div class="feature-card">
-          <img src="{{ url_for('static', filename='image_3.png') }}" alt="Çevre dostu">
-          <p>Çevre dostu🌿</p>
-        </div>
-        <div class="feature-card">
-          <img src="{{ url_for('static', filename='image_4.png') }}" alt="Hızlı ve güvenli">
-          <p>Hızlı ve güvenli🔐</p>
-        </div>
-      </div>
-
-      <a href="/" class="neo-btn">Neo</a>
-
-      <div class="divider"></div>
-
-      <div class="footer">
-        <p>Bu E posta Neo yeni nesil yapay zeka tarafından gönderilmiştir</p>
-        <p>Tüm hakları saklıdır</p>
-        <p><strong>© Neo</strong></p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
-"""
-
-# --- ROUTES ---
-
-@app.route('/')
-def home():
-    return render_template_string(HTML_REGISTER)
-
-@app.route('/register', methods=['POST'])
-def register():
-    # Form verilerini yakalama alanı
-    email = request.form.get('email')
-    fullname = request.form.get('fullname')
-    password = request.form.get('password')
+    st.markdown("---")
+    st.markdown("### Burdan kayıt ve giriş işlemlerini yapabilirsin")
     
-    # Kayıt işlemleri gerçekleştirildikten sonra doğrulama koduna yönlendirme
-    return redirect(url_for('verify'))
+    with st.form("kayit_formu"):
+        st.markdown("## NEO KAYIT FORMU")
+        email = st.text_input("E posta")
+        fullname = st.text_input("Ad soyad")
+        password = st.text_input("Şifre", type="password")
+        
+        submit = st.form_submit_button("Kayıt Ol ve Doğrula")
+        if submit:
+            if email and fullname and password:
+                # Kullanıcıyı listeye kaydet (İstatistik için)
+                st.session_state.registered_users.append({
+                    "email": email,
+                    "fullname": fullname
+                })
+                navigate_to("verify")
+                st.rerun()
+            else:
+                st.warning("Lütfen tüm alanları doldurun.")
 
-@app.route('/verify')
-def verify():
-    return render_template_string(HTML_VERIFY)
+# --- 2. SAYFA: DOĞRULAMA EKRANI ---
+elif st.session_state.page == "verify":
+    st.markdown("""
+        <div style="background: linear-gradient(135deg, #f7b733, #fc4a1a, #e14efa); padding: 30px; border-radius: 15px; color: white; text-align: center;">
+            <h1>Neo–e posta<br>doğrulama kodunuz</h1>
+            <p style="font-size: 12px;">Bu kodu hiç kimseyle paylaşmamakla birlikte bu E postaya yanıt vermeyin</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    st.markdown("<h3 style='text-align: center; margin-top: 20px;'>Doğrulama kodu</h3>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.info("Hatasız ve sınırsız ∞")
+    with col2:
+        st.success("Çevre dostu 🌿")
+    with col3:
+        st.warning("Hızlı ve güvenli 🔐")
+
+    if st.button("Ana Sayfaya Dön", use_container_width=True):
+        navigate_to("register")
+        st.rerun()
+
+# --- 3. SAYFA: ADMIN PANELI ---
+elif st.session_state.page == "admin":
+    st.title("🔒 Neo Yönetici Paneli")
+
+    # Giriş Yapılmamışsa Şifre Ekranı Göster
+    if not st.session_state.admin_logged_in:
+        admin_password = st.text_input("Yönetici Şifresi", type="password")
+        if st.button("Giriş Yap"):
+            if admin_password == "040608.demir":
+                st.session_state.admin_logged_in = True
+                st.success("Giriş başarılı!")
+                st.rerun()
+            else:
+                st.error("Hatalı şifre!")
+    else:
+        # Yönetici Paneli İçeriği
+        st.subheader("⚙️ Sistem Kontrolleri")
+        
+        # Bakım Modu Anahtarı (Toggle)
+        maintenance = st.toggle("Bakım Modunu Aktif Et", value=st.session_state.maintenance_mode)
+        if maintenance != st.session_state.maintenance_mode:
+            st.session_state.maintenance_mode = maintenance
+            if maintenance:
+                st.warning("Bakım modu açıldı. Kullanıcılar siteye erişemez.")
+            else:
+                st.success("Bakım modu kapatıldı. Site erişime açık.")
+
+        st.markdown("---")
+        st.subheader("📊 Canlı İstatistikler")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric(label="Sayfa Görüntülenmesi", value=st.session_state.total_views)
+        with col2:
+            st.metric(label="Toplam Kayıtlı Kullanıcı", value=len(st.session_state.registered_users))
+
+        # Kayıtlı Kullanıcı Listesi
+        st.markdown("### 👥 Son Kaydolan Kullanıcılar")
+        if st.session_state.registered_users:
+            st.dataframe(st.session_state.registered_users, use_container_width=True)
+        else:
+            st.info("Henüz kayıtlı kullanıcı bulunmuyor.")
+
+        st.markdown("---")
+        col_btn1, col_btn2 = st.columns(2)
+        with col_btn1:
+            if st.button("Çıkış Yap"):
+                st.session_state.admin_logged_in = False
+                navigate_to("register")
+                st.rerun()
+        with col_btn2:
+            if st.button("Ana Sayfaya Git"):
+                navigate_to("register")
+                st.rerun()
+
+# --- SOL MENÜDEN YÖNETİCİ ARAMASI ---
+st.sidebar.markdown("### 🔗 Hızlı Linkler")
+if st.sidebar.button("Yönetici Paneli (Admin)"):
+    navigate_to("admin")
+    st.rerun()
