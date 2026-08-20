@@ -1,199 +1,174 @@
-import random
-import google.generativeai as genai
-import resend
-import streamlit as st
+from flask import Flask, render_template_string, request, redirect, url_for
 
-# Sayfa Ayarları
-st.set_page_config(page_title="Neo AI", page_icon="⚡", layout="centered")
+app = Flask(__name__)
 
-# Modern Renkli Tema (Neon / Gradient CSS)
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
-        color: #f8fafc;
-    }
-    h1, h2, h3 {
-        background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800 !important;
-    }
-    .stButton>button {
-        background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 12px !important;
-        padding: 10px 24px !important;
-        font-weight: bold !important;
-        box-shadow: 0 4px 14px 0 rgba(168, 85, 247, 0.39) !important;
-        transition: all 0.3s ease !important;
-    }
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px 0 rgba(168, 85, 247, 0.6) !important;
-    }
-    .stTextInput input {
-        background-color: rgba(30, 41, 59, 0.7) !important;
-        color: #f8fafc !important;
-        border: 1px solid #475569 !important;
-        border-radius: 10px !important;
-    }
-    .stTextInput input:focus {
-        border-color: #818cf8 !important;
-        box-shadow: 0 0 10px rgba(129, 140, 248, 0.5) !important;
-    }
-    .stChatMessage {
-        background-color: rgba(30, 41, 59, 0.6) !important;
-        border-radius: 15px !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        margin-bottom: 10px !important;
-    }
-    </style>
-""",
-    unsafe_allow_html=True,
-)
+# --- TEMPLATE: Kayıt Sayfası (Görsel 6 & 7 Entegre) ---
+HTML_REGISTER = """
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neo - Türkiye'nin Yeni Yapay Zekası</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #fcf9f2; color: #2d3748; display: flex; justify-content: center; padding: 20px 10px; }
+    .container { width: 100%; max-width: 500px; background-color: #fdfbf7; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .hero-banner { background-color: #2cb67d; color: #ffffff; padding: 35px 20px 25px 20px; text-align: center; }
+    .hero-banner h1 { font-family: 'Georgia', serif; font-size: 32px; font-weight: 500; margin-bottom: 5px; }
+    .hero-banner p { font-size: 14px; opacity: 0.9; margin-bottom: 25px; }
+    .btn-register { display: inline-block; background-color: #ffffff; color: #1a1a1a; padding: 10px 24px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .section-title { font-family: 'Georgia', serif; color: #2cb67d; font-size: 26px; text-align: center; margin: 30px 0 20px 0; font-weight: 500; }
+    .cards-grid { display: flex; justify-content: space-between; gap: 10px; padding: 0 15px; margin-bottom: 35px; }
+    .card { flex: 1; border-radius: 12px; padding: 15px 8px; text-align: center; min-height: 140px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+    .card-purple { background-color: #d17bb8; color: #ffffff; }
+    .card-green { background-color: #2cb67d; color: #ffffff; }
+    .card-yellow { background-color: #f7e1a0; color: #333333; }
+    .card p { font-size: 11px; line-height: 1.3; font-weight: 500; }
+    .action-section { padding: 0 20px; margin-bottom: 30px; }
+    .action-title { font-family: 'Georgia', serif; color: #2cb67d; font-size: 24px; line-height: 1.2; margin-bottom: 20px; }
+    .form-container { background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 25px 20px; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    .form-title { font-family: 'Impact', 'Arial Black', sans-serif; font-size: 28px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 15px; color: #000000; }
+    .form-group { margin-bottom: 18px; text-align: left; }
+    .form-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #000000; }
+    .form-group input { width: 100%; padding: 12px; border: 1px solid #333333; font-size: 14px; outline: none; }
+    .btn-submit { width: 100%; background-color: #2cb67d; color: #ffffff; border: none; padding: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    .btn-submit:hover { background-color: #249667; }
+    .footer { text-align: center; padding: 20px 15px 30px 15px; font-size: 12px; color: #666666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero-banner">
+      <h1>Neo'ya hoşgeldiniz</h1>
+      <p>Türkiye'nin yeni yapay zekası</p>
+      <a href="#kayit-formu" class="btn-register">KAYIT OLMAK İSTİYORUM</a>
+    </div>
 
-# API Yapılandırmaları
-resend.api_key = st.secrets.get("RESEND_API_KEY", "")
+    <h2 class="section-title">Neler beklemelisiniz?</h2>
+    
+    <div class="cards-grid">
+      <div class="card card-purple"><p>DJ'ler nostaljik şarkılar ve dans hitleri çalıyor</p></div>
+      <div class="card card-green"><p>Özel menü<br>ve içecekler</p></div>
+      <div class="card card-yellow"><p>Neon<br>fotoğraf kabini</p></div>
+    </div>
 
-if "GEMINI_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    # Güncellenmiş Model Yolu
-    model = genai.GenerativeModel("gemini-1.5-flash-latest")
-else:
-    st.error("GEMINI_API_KEY Secrets kutusunda bulunamadı!")
+    <div class="action-section">
+      <h2 class="action-title">Burdan kayıt<br>ve giriş<br>işlemlerini<br>yapabilirsin</h2>
 
-# Oturum Durumları
-if "dogrulama_kodu" not in st.session_state:
-    st.session_state.dogrulama_kodu = None
-if "giris_basarili" not in st.session_state:
-    st.session_state.giris_basarili = False
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+      <div id="kayit-formu" class="form-container">
+        <h3 class="form-title">NEO KAYIT FORMU</h3>
+        <form action="/register" method="POST">
+          <div class="form-group">
+            <label for="email">E posta</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="fullname">Ad soyad</label>
+            <input type="text" id="fullname" name="fullname" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Şifre</label>
+            <input type="password" id="password" name="password" required>
+          </div>
+          <button type="submit" class="btn-submit">Kayıt Ol ve Doğrula</button>
+        </form>
+      </div>
+    </div>
 
-# --- AŞAMA 1: E-POSTA DOĞRULAMA GİRİŞ EKRANI ---
-if not st.session_state.giris_basarili:
-    st.title("⚡ Neo AI")
-    st.write("Sisteme giriş yapmak için e-posta adresinizi girin.")
+    <div class="footer">
+      <p>Neo yeni yapay zeka tüm hakları saklıdır</p>
+    </div>
+  </div>
+</body>
+</html>
+"""
 
-    eposta = st.text_input(
-        "E-posta Adresiniz:", placeholder="ornek@gmail.com"
-    )
+# --- TEMPLATE: Doğrulama Ekranı (Görsel 1, 2, 3, 4, 5 Entegre) ---
+HTML_VERIFY = """
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neo - E-Posta Doğrulama</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #f4f4f7; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .email-card { width: 100%; max-width: 500px; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); text-align: center; }
+    .header-banner { background: linear-gradient(135deg, #f7b733 0%, #fc4a1a 40%, #e14efa 70%, #ff007f 100%); padding: 40px 20px 30px 20px; color: #ffffff; }
+    .header-banner h1 { font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 15px; }
+    .header-banner p { font-size: 13px; opacity: 0.95; max-width: 380px; margin: 0 auto; }
+    .content-area { padding: 30px 20px; }
+    .code-title { font-family: "Courier New", Courier, monospace; font-size: 18px; font-weight: 700; color: #333333; margin-bottom: 20px; }
+    .features-grid { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 30px; }
+    .feature-card { flex: 1; background-color: #ffffff; border: 1px solid #eaeaea; border-radius: 12px; padding: 15px 8px; display: flex; flex-direction: column; align-items: center; }
+    .feature-card img { width: 48px; height: 48px; object-fit: contain; margin-bottom: 12px; }
+    .feature-card p { font-size: 12px; color: #444444; font-weight: 600; }
+    .neo-btn { display: inline-block; width: 160px; padding: 12px 0; background: linear-gradient(135deg, #ff8a00, #e52e71); color: #ffffff; font-size: 15px; font-weight: 700; border-radius: 25px; text-decoration: none; margin-bottom: 10px; }
+    .divider { height: 1px; background: linear-gradient(90deg, #ff8a00 0%, #e52e71 50%, #8a238c 100%); margin: 20px 0 25px 0; opacity: 0.6; }
+    .footer { font-size: 12px; color: #666666; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="email-card">
+    <div class="header-banner">
+      <h1>Neo–e posta<br>doğrulama<br>kodunuz</h1>
+      <p>Bu kodu hiç kimseyle paylaşmamakla birlikte bu E postaya yanıt vermeyin</p>
+    </div>
 
-    if st.button("Doğrulama Kodu Gönder"):
-        if eposta:
-            kod = str(random.randint(100000, 999999))
-            st.session_state.dogrulama_kodu = kod
+    <div class="content-area">
+      <div class="code-title">Doğrulama kodu</div>
 
-            html_content = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-            </head>
-            <body style="margin:0; padding:0; background-color:#f4f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                <div style="max-width: 500px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                    
-                    <div style="background: linear-gradient(135deg, #ff3385 0%, #ff8833 50%, #ffcc00 100%); padding: 40px 20px; text-align: center; color: #ffffff;">
-                        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 10px 0; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            Neo-e posta<br>doğrulama<br>kodunuz
-                        </h1>
-                        <p style="font-size: 13px; margin: 15px 0 0 0; opacity: 0.9; font-weight: 400;">
-                            Bu kodu hiç kimseyle paylaşmamakla birlikte bu E postaya yanıt vermeyin
-                        </p>
-                    </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <img src="{{ url_for('static', filename='image_2.png') }}" alt="Hatasız ve sınırsız">
+          <p>Hatasız ve<br>sınırsız∞</p>
+        </div>
+        <div class="feature-card">
+          <img src="{{ url_for('static', filename='image_3.png') }}" alt="Çevre dostu">
+          <p>Çevre dostu🌿</p>
+        </div>
+        <div class="feature-card">
+          <img src="{{ url_for('static', filename='image_4.png') }}" alt="Hızlı ve güvenli">
+          <p>Hızlı ve güvenli🔐</p>
+        </div>
+      </div>
 
-                    <div style="padding: 30px 20px; text-align: center;">
-                        <p style="font-style: italic; font-weight: bold; font-family: monospace; font-size: 16px; color: #333333; margin-bottom: 15px;">
-                            Doğrulama kodu
-                        </p>
-                        
-                        <div style="background: linear-gradient(90deg, #ff7733, #ff3385); color: #ffffff; font-size: 36px; font-weight: bold; letter-spacing: 8px; padding: 15px 30px; border-radius: 50px; display: inline-block; box-shadow: 0 4px 15px rgba(255, 51, 133, 0.3);">
-                            {kod}
-                        </div>
+      <a href="/" class="neo-btn">Neo</a>
 
-                        <table style="width: 100%; margin-top: 30px; border-spacing: 8px;">
-                            <tr>
-                                <td style="background-color: #ffffff; border: 1px solid #eeeeee; border-radius: 12px; padding: 15px 5px; text-align: center; font-size: 12px; color: #333333;">
-                                    Hatasız ve sınırsız∞
-                                </td>
-                                <td style="background-color: #ffffff; border: 1px solid #eeeeee; border-radius: 12px; padding: 15px 5px; text-align: center; font-size: 12px; color: #333333;">
-                                    Çevre dostu🌿
-                                </td>
-                                <td style="background-color: #ffffff; border: 1px solid #eeeeee; border-radius: 12px; padding: 15px 5px; text-align: center; font-size: 12px; color: #333333;">
-                                    Hızlı ve güvenli🔒
-                                </td>
-                            </tr>
-                        </table>
+      <div class="divider"></div>
 
-                        <div style="margin-top: 25px;">
-                            <span style="background: linear-gradient(90deg, #ff8833, #ff3385); color: #ffffff; font-weight: bold; padding: 10px 40px; border-radius: 20px; font-size: 14px;">
-                                Neo
-                            </span>
-                        </div>
-                    </div>
+      <div class="footer">
+        <p>Bu E posta Neo yeni nesil yapay zeka tarafından gönderilmiştir</p>
+        <p>Tüm hakları saklıdır</p>
+        <p><strong>© Neo</strong></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+"""
 
-                    <div style="border-top: 1px solid #ffaa66; padding: 20px; text-align: center; font-size: 11px; color: #555555; background-color: #fafafa;">
-                        <p style="margin: 0 0 5px 0;">Bu E posta Neo yeni nesil yapay zeka tarafından gönderilmiştir</p>
-                        <p style="margin: 0 0 5px 0;">Tüm hakları saklıdır</p>
-                        <p style="margin: 0; font-weight: bold;">© Neo</p>
-                    </div>
+# --- ROUTES ---
 
-                </div>
-            </body>
-            </html>
-            """
+@app.route('/')
+def home():
+    return render_template_string(HTML_REGISTER)
 
-            try:
-                resend.Emails.send(
-                    {
-                        "from": "Neo AI <onboarding@resend.dev>",
-                        "to": eposta,
-                        "subject": "Neo - E-posta Doğrulama Kodunuz",
-                        "html": html_content,
-                    }
-                )
-                st.success("Doğrulama kodu e-postanıza gönderildi!")
-            except Exception as e:
-                st.error(f"E-posta Gönderim Hatası: {e}")
-        else:
-            st.warning("Lütfen geçerli bir e-posta adresi girin.")
+@app.route('/register', methods=['POST'])
+def register():
+    # Form verilerini yakalama alanı
+    email = request.form.get('email')
+    fullname = request.form.get('fullname')
+    password = request.form.get('password')
+    
+    # Kayıt işlemleri gerçekleştirildikten sonra doğrulama koduna yönlendirme
+    return redirect(url_for('verify'))
 
-    if st.session_state.dogrulama_kodu:
-        st.divider()
-        girilen_kod = st.text_input(
-            "E-postanıza gelen 6 haneli kodu girin:", type="password"
-        )
-        if st.button("Giriş Yap"):
-            if girilen_kod == st.session_state.dogrulama_kodu:
-                st.session_state.giris_basarili = True
-                st.rerun()
-            else:
-                st.error("Hatalı kod! Lütfen tekrar kontrol edin.")
+@app.route('/verify')
+def verify():
+    return render_template_string(HTML_VERIFY)
 
-# --- AŞAMA 2: NEO AI SOHBET EKRANI ---
-else:
-    st.title("💬 Neo AI Asistan")
-
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    if prompt := st.chat_input("Neo AI'ya bir mesaj yazın..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        with st.chat_message("assistant"):
-            with st.spinner("Neo düşünüyor..."):
-                try:
-                    response = model.generate_content(prompt)
-                    bot_reply = response.text
-                    st.markdown(bot_reply)
-                    st.session_state.messages.append(
-                        {"role": "assistant", "content": bot_reply}
-                    )
-                except Exception as e:
-                    st.error(f"Yanıt oluşturulurken hata oluştu: {e}")
+if __name__ == '__main__':
+    app.run(debug=True)
