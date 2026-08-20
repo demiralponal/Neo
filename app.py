@@ -1,152 +1,159 @@
+import random
+import google.generativeai as genai
+import resend
 import streamlit as st
 
-# Sayfa Yapılandırması
-st.set_page_config(page_title="Neo - Yapay Zeka", page_icon="🤖", layout="centered")
+# Sayfa Ayarları
+st.set_page_config(page_title="Neo AI", page_icon="⚡", layout="centered")
 
-# --- OTURUM VE DURUM (SESSION STATE) YÖNETİMİ ---
-if "page" not in st.session_state:
-    st.session_state.page = "register"
-
-if "maintenance_mode" not in st.session_state:
-    st.session_state.maintenance_mode = False
-
-if "admin_logged_in" not in st.session_state:
-    st.session_state.admin_logged_in = False
-
-if "total_views" not in st.session_state:
-    st.session_state.total_views = 0
-
-if "registered_users" not in st.session_state:
-    st.session_state.registered_users = []
-
-# Ziyaretçi sayacını artır
-st.session_state.total_views += 1
-
-# Sayfa Değiştirme Fonksiyonu
-def navigate_to(page_name):
-    st.session_state.page = page_name
-
-# URL Parametresi Kontrolü (?page=admin kontrolü)
-query_params = st.query_params
-if query_params.get("page") == "admin" and st.session_state.page != "admin":
-    st.session_state.page = "admin"
-
-# --- CSS STİLLERİ ---
-st.markdown("""
+# CSS Tema
+st.markdown(
+    """
     <style>
-    .stApp { background-color: #fcf9f2; }
-    .hero-banner { background-color: #2cb67d; color: white; padding: 35px; border-radius: 15px; text-align: center; margin-bottom: 25px; }
-    .hero-banner h1 { font-family: 'Georgia', serif; margin-bottom: 5px; }
-    .action-section { padding: 10px 0; }
-    .action-title { font-family: 'Georgia', serif; color: #2cb67d; font-size: 24px; line-height: 1.2; margin-bottom: 20px; }
+    .stApp {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+        color: #f8fafc;
+    }
+    h1, h2, h3 {
+        background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800 !important;
+    }
+    .stButton>button {
+        background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 10px 24px !important;
+        font-weight: bold !important;
+    }
+    .stTextInput input {
+        background-color: rgba(30, 41, 59, 0.7) !important;
+        color: #f8fafc !important;
+        border: 1px solid #475569 !important;
+        border-radius: 10px !important;
+    }
+    .stChatMessage {
+        background-color: rgba(30, 41, 59, 0.6) !important;
+        border-radius: 15px !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
     </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
-# --- BAKIM MODU KONTROLÜ ---
-if st.session_state.maintenance_mode and st.session_state.page != "admin":
-    st.error("🛠️ **SİSTEM BAKIMDA**")
-    st.info("Neo şu anda bakımdadır. Lütfen daha sonra tekrar deneyiniz.")
-    st.stop()
+# API Yapılandırmaları
+resend.api_key = st.secrets.get("RESEND_API_KEY", "")
 
-# --- 1. SAYFA: KAYIT EKRANI ---
-if st.session_state.page == "register":
-    st.markdown("""
-        <div class="hero-banner">
-            <h1>Neo'ya hoşgeldiniz</h1>
-            <p>Türkiye'nin yeni yapay zekası</p>
-        </div>
-    """, unsafe_allow_html=True)
+if "GEMINI_API_KEY" in st.secrets:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    model = genai.GenerativeModel("gemini-1.5-flash")
 
-    st.markdown("<h2 class='action-title'>Burdan kayıt ve giriş işlemlerini yapabilirsin</h2>", unsafe_allow_html=True)
-    
-    with st.form("kayit_formu"):
-        st.markdown("## NEO KAYIT FORMU")
-        email = st.text_input("E posta")
-        fullname = st.text_input("Ad soyad")
-        password = st.text_input("Şifre", type="password")
-        
-        submit = st.form_submit_button("Kayıt Ol ve Doğrula")
-        if submit:
-            if email and fullname and password:
-                st.session_state.registered_users.append({
-                    "email": email,
-                    "fullname": fullname
-                })
-                navigate_to("verify")
-                st.rerun()
-            else:
-                st.warning("Lütfen tüm alanları doldurun.")
+# Oturum Durumları
+if "dogrulama_kodu" not in st.session_state:
+    st.session_state.dogrulama_kodu = None
+if "giris_basarili" not in st.session_state:
+    st.session_state.giris_basarili = False
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# --- 2. SAYFA: DOĞRULAMA EKRANI ---
-elif st.session_state.page == "verify":
-    st.markdown("""
-        <div style="background: linear-gradient(135deg, #f7b733, #fc4a1a, #e14efa); padding: 30px; border-radius: 15px; color: white; text-align: center;">
-            <h1>Neo–e posta<br>doğrulama kodunuz</h1>
-            <p style="font-size: 12px;">Bu kodu hiç kimseyle paylaşmamakla birlikte bu E postaya yanıt vermeyin</p>
-        </div>
-    """, unsafe_allow_html=True)
+# --- AŞAMA 1: GİRİŞ EKRANI ---
+if not st.session_state.giris_basarili:
+    st.title("⚡ Neo AI")
+    st.write("Sisteme giriş yapmak için e-posta adresinizi girin.")
 
-    st.markdown("<h3 style='text-align: center; margin-top: 20px;'>Doğrulama kodu</h3>", unsafe_allow_html=True)
+    eposta = st.text_input(
+        "E-posta Adresiniz:", placeholder="ornek@gmail.com"
+    )
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.info("Hatasız ve sınırsız ∞")
-    with col2:
-        st.success("Çevre dostu 🌿")
-    with col3:
-        st.warning("Hızlı ve güvenli 🔐")
+    if st.button("Doğrulama Kodu Gönder"):
+        if eposta:
+            kod = str(random.randint(100000, 999999))
+            st.session_state.dogrulama_kodu = kod
 
-    if st.button("Ana Sayfaya Dön", use_container_width=True):
-        navigate_to("register")
-        st.rerun()
+            # Sadece E-postaya Gidecek HTML Şablonu
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="utf-8"></head>
+            <body style="margin:0; padding:0; background-color:#f4f4f6; font-family: sans-serif;">
+                <div style="max-width: 500px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden;">
+                    <div style="background: linear-gradient(135deg, #ff3385 0%, #ff8833 50%, #ffcc00 100%); padding: 40px 20px; text-align: center; color: #ffffff;">
+                        <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Neo-e posta<br>doğrulama<br>kodunuz</h1>
+                        <p style="font-size: 12px; margin-top: 10px;">Bu kodu kimseyle paylaşmayın ve bu e-postaya yanıt vermeyin.</p>
+                    </div>
+                    <div style="padding: 30px 20px; text-align: center;">
+                        <p style="font-weight: bold; font-size: 14px; color: #333;">Doğrulama kodu</p>
+                        <div style="background: linear-gradient(90deg, #ff7733, #ff3385); color: #ffffff; font-size: 32px; font-weight: bold; letter-spacing: 6px; padding: 12px 25px; border-radius: 50px; display: inline-block;">
+                            {kod}
+                        </div>
+                        <table style="width: 100%; margin-top: 25px; border-spacing: 5px;">
+                            <tr>
+                                <td style="border: 1px solid #eee; border-radius: 10px; padding: 10px; font-size: 11px; text-align:center;">Hatasız ve sınırsız∞</td>
+                                <td style="border: 1px solid #eee; border-radius: 10px; padding: 10px; font-size: 11px; text-align:center;">Çevre dostu🌿</td>
+                                <td style="border: 1px solid #eee; border-radius: 10px; padding: 10px; font-size: 11px; text-align:center;">Hızlı ve güvenli🔒</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div style="border-top: 1px solid #ffa66; padding: 15px; text-align: center; font-size: 10px; color: #666; background-color: #fafafa;">
+                        <p style="margin: 0;">Bu E-posta Neo yeni nesil yapay zeka tarafından gönderilmiştir.</p>
+                        <p style="margin: 3px 0 0 0; font-weight: bold;">© Neo</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
 
-# --- 3. SAYFA: ADMIN PANELI ---
-elif st.session_state.page == "admin":
-    st.title("🔒 Neo Yönetici Paneli")
-
-    if not st.session_state.admin_logged_in:
-        admin_password = st.text_input("Yönetici Şifresi", type="password")
-        if st.button("Giriş Yap"):
-            if admin_password == "040608.demir":
-                st.session_state.admin_logged_in = True
-                st.success("Giriş başarılı!")
-                st.rerun()
-            else:
-                st.error("Hatalı şifre!")
-    else:
-        st.subheader("⚙️ Sistem Kontrolleri")
-        
-        maintenance = st.toggle("Bakım Modunu Aktif Et", value=st.session_state.maintenance_mode)
-        if maintenance != st.session_state.maintenance_mode:
-            st.session_state.maintenance_mode = maintenance
-            if maintenance:
-                st.warning("Bakım modu açıldı. Kullanıcılar siteye erişemez.")
-            else:
-                st.success("Bakım modu kapatıldı. Site erişime açık.")
-
-        st.markdown("---")
-        st.subheader("📊 Canlı İstatistikler")
-
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric(label="Sayfa Görüntülenmesi", value=st.session_state.total_views)
-        with col2:
-            st.metric(label="Toplam Kayıtlı Kullanıcı", value=len(st.session_state.registered_users))
-
-        st.markdown("### 👥 Son Kaydolan Kullanıcılar")
-        if st.session_state.registered_users:
-            st.dataframe(st.session_state.registered_users, use_container_width=True)
+            try:
+                resend.Emails.send(
+                    {
+                        "from": "Neo AI <onboarding@resend.dev>",
+                        "to": eposta,
+                        "subject": "Neo - E-posta Doğrulama Kodunuz",
+                        "html": html_content,
+                    }
+                )
+                st.success(
+                    "Doğrulama kodu e-postanıza gönderildi! Spama bakmayı unutmayın."
+                )
+            except Exception as e:
+                st.error(f"E-posta Gönderim Hatası: {e}")
         else:
-            st.info("Henüz kayıtlı kullanıcı bulunmuyor.")
+            st.warning("Lütfen e-posta adresinizi girin.")
 
-        st.markdown("---")
-        col_btn1, col_btn2 = st.columns(2)
-        with col_btn1:
-            if st.button("Çıkış Yap"):
-                st.session_state.admin_logged_in = False
-                navigate_to("register")
+    if st.session_state.dogrulama_kodu:
+        st.divider()
+        girilen_kod = st.text_input("6 Haneli Kodu Girin:", type="password")
+        if st.button("Giriş Yap"):
+            if girilen_kod == st.session_state.dogrulama_kodu:
+                st.session_state.giris_basarili = True
                 st.rerun()
-        with col_btn2:
-            if st.button("Ana Sayfaya Git"):
-                navigate_to("register")
-                st.rerun()
+            else:
+                st.error("Hatalı kod!")
+
+# --- AŞAMA 2: NEO AI SOHBET EKRANI ---
+else:
+    st.title("💬 Neo AI Asistan")
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("Neo AI'ya bir mesaj yazın..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Neo düşünüyor..."):
+                try:
+                    response = model.generate_content(prompt)
+                    bot_reply = response.text
+                    st.markdown(bot_reply)
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": bot_reply}
+                    )
+                except Exception as e:
+                    st.error(f"Yanıt oluşturulurken hata oluştu: {e}")
