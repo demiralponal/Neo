@@ -6,7 +6,7 @@ import streamlit as st
 # Sayfa Ayarları
 st.set_page_config(page_title="Neo AI", page_icon="⚡", layout="centered")
 
-# CSS Tema
+# Modern Renkli Tema (Neon / Gradient CSS)
 st.markdown(
     """
     <style>
@@ -73,35 +73,52 @@ if not st.session_state.giris_basarili:
             kod = str(random.randint(100000, 999999))
             st.session_state.dogrulama_kodu = kod
 
-            # Sadece E-postaya Gidecek HTML Şablonu
+            # Eklediğin HTML Tasarımının E-Posta Entegre Hali
             html_content = f"""
             <!DOCTYPE html>
-            <html>
-            <head><meta charset="utf-8"></head>
-            <body style="margin:0; padding:0; background-color:#f4f4f6; font-family: sans-serif;">
-                <div style="max-width: 500px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden;">
-                    <div style="background: linear-gradient(135deg, #ff3385 0%, #ff8833 50%, #ffcc00 100%); padding: 40px 20px; text-align: center; color: #ffffff;">
-                        <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Neo-e posta<br>doğrulama<br>kodunuz</h1>
-                        <p style="font-size: 12px; margin-top: 10px;">Bu kodu kimseyle paylaşmayın ve bu e-postaya yanıt vermeyin.</p>
+            <html lang="tr">
+            <head>
+              <meta charset="UTF-8">
+            </head>
+            <body style="background-color: #fcf9f2; color: #2d3748; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px;">
+              <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #fcf9f2; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 10px;">
+                    
+                    <!-- Banner -->
+                    <div style="background-color: #2cb67d; color: #ffffff; padding: 35px 20px; border-radius: 15px; text-align: center;">
+                      <h1 style="font-family: 'Georgia', serif; font-size: 32px; margin: 0 0 5px 0;">Neo'ya hoşgeldiniz</h1>
+                      <p style="margin: 0; font-size: 16px; opacity: 0.9;">Türkiye'nin yeni yapay zekası</p>
                     </div>
-                    <div style="padding: 30px 20px; text-align: center;">
-                        <p style="font-weight: bold; font-size: 14px; color: #333;">Doğrulama kodu</p>
-                        <div style="background: linear-gradient(90deg, #ff7733, #ff3385); color: #ffffff; font-size: 32px; font-weight: bold; letter-spacing: 6px; padding: 12px 25px; border-radius: 50px; display: inline-block;">
-                            {kod}
-                        </div>
-                        <table style="width: 100%; margin-top: 25px; border-spacing: 5px;">
-                            <tr>
-                                <td style="border: 1px solid #eee; border-radius: 10px; padding: 10px; font-size: 11px; text-align:center;">Hatasız ve sınırsız∞</td>
-                                <td style="border: 1px solid #eee; border-radius: 10px; padding: 10px; font-size: 11px; text-align:center;">Çevre dostu🌿</td>
-                                <td style="border: 1px solid #eee; border-radius: 10px; padding: 10px; font-size: 11px; text-align:center;">Hızlı ve güvenli🔒</td>
-                            </tr>
-                        </table>
+
+                    <!-- Alt Başlık -->
+                    <h2 style="font-family: 'Georgia', serif; color: #2cb67d; font-size: 22px; margin-top: 25px; text-align: center;">
+                      Giriş Doğrulama Kodunuz
+                    </h2>
+
+                    <!-- Form / Kod Kutusu -->
+                    <div style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 30px 20px; margin-top: 15px; text-align: center;">
+                      <h3 style="font-family: 'Impact', 'Arial Black', sans-serif; font-size: 26px; text-transform: uppercase; color: #000000; margin: 0 0 15px 0;">
+                        NEO DOĞRULAMA KODU
+                      </h3>
+                      
+                      <div style="background-color: #2cb67d; color: #ffffff; font-size: 36px; font-weight: bold; letter-spacing: 8px; padding: 15px 25px; border-radius: 10px; display: inline-block; margin: 10px 0;">
+                        {kod}
+                      </div>
+
+                      <p style="font-size: 13px; color: #718096; margin-top: 20px; margin-bottom: 0;">
+                        Bu kodu kimseyle paylaşmayın. Bu e-posta otomatiktir, lütfen yanıtlamayınız.
+                      </p>
                     </div>
-                    <div style="border-top: 1px solid #ffa66; padding: 15px; text-align: center; font-size: 10px; color: #666; background-color: #fafafa;">
-                        <p style="margin: 0;">Bu E-posta Neo yeni nesil yapay zeka tarafından gönderilmiştir.</p>
-                        <p style="margin: 3px 0 0 0; font-weight: bold;">© Neo</p>
+
+                    <!-- Footer -->
+                    <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #a0aec0;">
+                      <p style="margin: 0;">© Neo AI - Tüm hakları saklıdır.</p>
                     </div>
-                </div>
+
+                  </td>
+                </tr>
+              </table>
             </body>
             </html>
             """
@@ -111,12 +128,12 @@ if not st.session_state.giris_basarili:
                     {
                         "from": "Neo AI <onboarding@resend.dev>",
                         "to": eposta,
-                        "subject": "Neo - E-posta Doğrulama Kodunuz",
+                        "subject": "Neo AI - Giriş Doğrulama Kodunuz",
                         "html": html_content,
                     }
                 )
                 st.success(
-                    "Doğrulama kodu e-postanıza gönderildi! Spama bakmayı unutmayın."
+                    "Doğrulama kodu yeni şablonla e-postanıza gönderildi!"
                 )
             except Exception as e:
                 st.error(f"E-posta Gönderim Hatası: {e}")
