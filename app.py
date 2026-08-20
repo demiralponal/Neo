@@ -1,4 +1,3 @@
-
 import random
 import google.generativeai as genai
 import resend
@@ -61,7 +60,8 @@ resend.api_key = st.secrets.get("RESEND_API_KEY", "")
 
 if "GEMINI_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    # Güncellenmiş Model Yolu
+    model = genai.GenerativeModel("gemini-1.5-flash-latest")
 else:
     st.error("GEMINI_API_KEY Secrets kutusunda bulunamadı!")
 
@@ -87,7 +87,6 @@ if not st.session_state.giris_basarili:
             kod = str(random.randint(100000, 999999))
             st.session_state.dogrulama_kodu = kod
 
-            # Görsellerdeki Birebir Özel Tasarımlı HTML Şablonu
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -97,7 +96,6 @@ if not st.session_state.giris_basarili:
             <body style="margin:0; padding:0; background-color:#f4f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                 <div style="max-width: 500px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
                     
-                    <!-- Üst Gradyan Alanı -->
                     <div style="background: linear-gradient(135deg, #ff3385 0%, #ff8833 50%, #ffcc00 100%); padding: 40px 20px; text-align: center; color: #ffffff;">
                         <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 10px 0; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                             Neo-e posta<br>doğrulama<br>kodunuz
@@ -107,7 +105,6 @@ if not st.session_state.giris_basarili:
                         </p>
                     </div>
 
-                    <!-- Kod Gösterim Alanı -->
                     <div style="padding: 30px 20px; text-align: center;">
                         <p style="font-style: italic; font-weight: bold; font-family: monospace; font-size: 16px; color: #333333; margin-bottom: 15px;">
                             Doğrulama kodu
@@ -117,7 +114,6 @@ if not st.session_state.giris_basarili:
                             {kod}
                         </div>
 
-                        <!-- Özellik Kartları -->
                         <table style="width: 100%; margin-top: 30px; border-spacing: 8px;">
                             <tr>
                                 <td style="background-color: #ffffff; border: 1px solid #eeeeee; border-radius: 12px; padding: 15px 5px; text-align: center; font-size: 12px; color: #333333;">
@@ -132,7 +128,6 @@ if not st.session_state.giris_basarili:
                             </tr>
                         </table>
 
-                        <!-- Neo Butonu -->
                         <div style="margin-top: 25px;">
                             <span style="background: linear-gradient(90deg, #ff8833, #ff3385); color: #ffffff; font-weight: bold; padding: 10px 40px; border-radius: 20px; font-size: 14px;">
                                 Neo
@@ -140,7 +135,6 @@ if not st.session_state.giris_basarili:
                         </div>
                     </div>
 
-                    <!-- Alt Bilgi (Footer) -->
                     <div style="border-top: 1px solid #ffaa66; padding: 20px; text-align: center; font-size: 11px; color: #555555; background-color: #fafafa;">
                         <p style="margin: 0 0 5px 0;">Bu E posta Neo yeni nesil yapay zeka tarafından gönderilmiştir</p>
                         <p style="margin: 0 0 5px 0;">Tüm hakları saklıdır</p>
@@ -161,7 +155,7 @@ if not st.session_state.giris_basarili:
                         "html": html_content,
                     }
                 )
-                st.success("Doğrulama kodu e-postanıza harika bir tasarımla gönderildi!")
+                st.success("Doğrulama kodu e-postanıza gönderildi!")
             except Exception as e:
                 st.error(f"E-posta Gönderim Hatası: {e}")
         else:
