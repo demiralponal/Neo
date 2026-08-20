@@ -12,12 +12,12 @@ GEMINI_KEY = st.secrets.get("GEMINI_API_KEY", "")
 
 resend.api_key = RESEND_KEY
 
-# Gemini Yapılandırması
+# Gemini Yapılandırması (Düzeltilen Model İsmi)
 if GEMINI_KEY:
     try:
         genai.configure(api_key=GEMINI_KEY)
-        # Güncel model ismi
-        model = genai.GenerativeModel("gemini-1.5-flash-latest")
+        # 'latest' takısı kaldırıldı, doğrudan stabil model çağırılıyor
+        model = genai.GenerativeModel("gemini-1.5-flash")
     except Exception as e:
         st.error(f"Gemini Başlatma Hatası: {e}")
 
@@ -140,6 +140,4 @@ else:
                         {"role": "assistant", "content": bot_reply}
                     )
                 except Exception as e:
-                    st.error(
-                        f"Gemini API Hatası: {e}. Lütfen Secrets'taki GEMINI_API_KEY değerini kontrol edin."
-                    )
+                    st.error(f"Gemini API Hatası: {e}")
