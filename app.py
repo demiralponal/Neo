@@ -35,15 +35,14 @@ if query_params.get("page") == "admin" and st.session_state.page != "admin":
 st.markdown("""
     <style>
     .stApp { background-color: #fcf9f2; }
-    .hero-banner { background-color: #2cb67d; color: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 25px; }
+    .hero-banner { background-color: #2cb67d; color: white; padding: 35px; border-radius: 15px; text-align: center; margin-bottom: 25px; }
     .hero-banner h1 { font-family: 'Georgia', serif; margin-bottom: 5px; }
-    .card { background-color: #ffffff; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #e0e0e0; }
-    .admin-card { background-color: #ffffff; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
+    .action-section { padding: 10px 0; }
+    .action-title { font-family: 'Georgia', serif; color: #2cb67d; font-size: 24px; line-height: 1.2; margin-bottom: 20px; }
     </style>
 """, unsafe_allow_html=True)
 
 # --- BAKIM MODU KONTROLÜ ---
-# Yönetici haricindeki kullanıcılar bakım modundayken bu ekranı görür
 if st.session_state.maintenance_mode and st.session_state.page != "admin":
     st.error("🛠️ **SİSTEM BAKIMDA**")
     st.info("Neo şu anda bakımdadır. Lütfen daha sonra tekrar deneyiniz.")
@@ -58,18 +57,7 @@ if st.session_state.page == "register":
         </div>
     """, unsafe_allow_html=True)
 
-    st.subheader("Neler beklemelisiniz?")
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("<div class='card' style='background-color: #d17bb8; color: white;'>DJ'ler nostaljik şarkılar ve dans hitleri çalıyor</div>", unsafe_allow_html=True)
-    with col2:
-        st.markdown("<div class='card' style='background-color: #2cb67d; color: white;'>Özel menü<br>ve içecekler</div>", unsafe_allow_html=True)
-    with col3:
-        st.markdown("<div class='card' style='background-color: #f7e1a0;'>Neon<br>fotoğraf kabini</div>", unsafe_allow_html=True)
-
-    st.markdown("---")
-    st.markdown("### Burdan kayıt ve giriş işlemlerini yapabilirsin")
+    st.markdown("<h2 class='action-title'>Burdan kayıt ve giriş işlemlerini yapabilirsin</h2>", unsafe_allow_html=True)
     
     with st.form("kayit_formu"):
         st.markdown("## NEO KAYIT FORMU")
@@ -80,7 +68,6 @@ if st.session_state.page == "register":
         submit = st.form_submit_button("Kayıt Ol ve Doğrula")
         if submit:
             if email and fullname and password:
-                # Kullanıcıyı listeye kaydet (İstatistik için)
                 st.session_state.registered_users.append({
                     "email": email,
                     "fullname": fullname
@@ -117,7 +104,6 @@ elif st.session_state.page == "verify":
 elif st.session_state.page == "admin":
     st.title("🔒 Neo Yönetici Paneli")
 
-    # Giriş Yapılmamışsa Şifre Ekranı Göster
     if not st.session_state.admin_logged_in:
         admin_password = st.text_input("Yönetici Şifresi", type="password")
         if st.button("Giriş Yap"):
@@ -128,10 +114,8 @@ elif st.session_state.page == "admin":
             else:
                 st.error("Hatalı şifre!")
     else:
-        # Yönetici Paneli İçeriği
         st.subheader("⚙️ Sistem Kontrolleri")
         
-        # Bakım Modu Anahtarı (Toggle)
         maintenance = st.toggle("Bakım Modunu Aktif Et", value=st.session_state.maintenance_mode)
         if maintenance != st.session_state.maintenance_mode:
             st.session_state.maintenance_mode = maintenance
@@ -149,7 +133,6 @@ elif st.session_state.page == "admin":
         with col2:
             st.metric(label="Toplam Kayıtlı Kullanıcı", value=len(st.session_state.registered_users))
 
-        # Kayıtlı Kullanıcı Listesi
         st.markdown("### 👥 Son Kaydolan Kullanıcılar")
         if st.session_state.registered_users:
             st.dataframe(st.session_state.registered_users, use_container_width=True)
@@ -167,9 +150,3 @@ elif st.session_state.page == "admin":
             if st.button("Ana Sayfaya Git"):
                 navigate_to("register")
                 st.rerun()
-
-# --- SOL MENÜDEN YÖNETİCİ ARAMASI ---
-st.sidebar.markdown("### 🔗 Hızlı Linkler")
-if st.sidebar.button("Yönetici Paneli (Admin)"):
-    navigate_to("admin")
-    st.rerun()
