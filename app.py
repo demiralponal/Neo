@@ -1,3 +1,4 @@
+
 import random
 import google.generativeai as genai
 import resend
@@ -10,21 +11,16 @@ st.set_page_config(page_title="Neo AI", page_icon="⚡", layout="centered")
 st.markdown(
     """
     <style>
-    /* Arka Plan */
     .stApp {
         background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
         color: #f8fafc;
     }
-    
-    /* Gradient Başlıklar */
     h1, h2, h3 {
         background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         font-weight: 800 !important;
     }
-    
-    /* Şık Renkli Butonlar */
     .stButton>button {
         background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%) !important;
         color: white !important;
@@ -39,8 +35,6 @@ st.markdown(
         transform: translateY(-2px);
         box-shadow: 0 6px 20px 0 rgba(168, 85, 247, 0.6) !important;
     }
-    
-    /* Input Kutuları */
     .stTextInput input {
         background-color: rgba(30, 41, 59, 0.7) !important;
         color: #f8fafc !important;
@@ -51,8 +45,6 @@ st.markdown(
         border-color: #818cf8 !important;
         box-shadow: 0 0 10px rgba(129, 140, 248, 0.5) !important;
     }
-    
-    /* Mesaj Baloncukları */
     .stChatMessage {
         background-color: rgba(30, 41, 59, 0.6) !important;
         border-radius: 15px !important;
@@ -69,7 +61,6 @@ resend.api_key = st.secrets.get("RESEND_API_KEY", "")
 
 if "GEMINI_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    # Düzeltilen model ismi:
     model = genai.GenerativeModel("gemini-1.5-flash")
 else:
     st.error("GEMINI_API_KEY Secrets kutusunda bulunamadı!")
@@ -96,24 +87,81 @@ if not st.session_state.giris_basarili:
             kod = str(random.randint(100000, 999999))
             st.session_state.dogrulama_kodu = kod
 
+            # Görsellerdeki Birebir Özel Tasarımlı HTML Şablonu
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+            </head>
+            <body style="margin:0; padding:0; background-color:#f4f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <div style="max-width: 500px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                    
+                    <!-- Üst Gradyan Alanı -->
+                    <div style="background: linear-gradient(135deg, #ff3385 0%, #ff8833 50%, #ffcc00 100%); padding: 40px 20px; text-align: center; color: #ffffff;">
+                        <h1 style="font-size: 32px; font-weight: 700; margin: 0 0 10px 0; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            Neo-e posta<br>doğrulama<br>kodunuz
+                        </h1>
+                        <p style="font-size: 13px; margin: 15px 0 0 0; opacity: 0.9; font-weight: 400;">
+                            Bu kodu hiç kimseyle paylaşmamakla birlikte bu E postaya yanıt vermeyin
+                        </p>
+                    </div>
+
+                    <!-- Kod Gösterim Alanı -->
+                    <div style="padding: 30px 20px; text-align: center;">
+                        <p style="font-style: italic; font-weight: bold; font-family: monospace; font-size: 16px; color: #333333; margin-bottom: 15px;">
+                            Doğrulama kodu
+                        </p>
+                        
+                        <div style="background: linear-gradient(90deg, #ff7733, #ff3385); color: #ffffff; font-size: 36px; font-weight: bold; letter-spacing: 8px; padding: 15px 30px; border-radius: 50px; display: inline-block; box-shadow: 0 4px 15px rgba(255, 51, 133, 0.3);">
+                            {kod}
+                        </div>
+
+                        <!-- Özellik Kartları -->
+                        <table style="width: 100%; margin-top: 30px; border-spacing: 8px;">
+                            <tr>
+                                <td style="background-color: #ffffff; border: 1px solid #eeeeee; border-radius: 12px; padding: 15px 5px; text-align: center; font-size: 12px; color: #333333;">
+                                    Hatasız ve sınırsız∞
+                                </td>
+                                <td style="background-color: #ffffff; border: 1px solid #eeeeee; border-radius: 12px; padding: 15px 5px; text-align: center; font-size: 12px; color: #333333;">
+                                    Çevre dostu🌿
+                                </td>
+                                <td style="background-color: #ffffff; border: 1px solid #eeeeee; border-radius: 12px; padding: 15px 5px; text-align: center; font-size: 12px; color: #333333;">
+                                    Hızlı ve güvenli🔒
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Neo Butonu -->
+                        <div style="margin-top: 25px;">
+                            <span style="background: linear-gradient(90deg, #ff8833, #ff3385); color: #ffffff; font-weight: bold; padding: 10px 40px; border-radius: 20px; font-size: 14px;">
+                                Neo
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Alt Bilgi (Footer) -->
+                    <div style="border-top: 1px solid #ffaa66; padding: 20px; text-align: center; font-size: 11px; color: #555555; background-color: #fafafa;">
+                        <p style="margin: 0 0 5px 0;">Bu E posta Neo yeni nesil yapay zeka tarafından gönderilmiştir</p>
+                        <p style="margin: 0 0 5px 0;">Tüm hakları saklıdır</p>
+                        <p style="margin: 0; font-weight: bold;">© Neo</p>
+                    </div>
+
+                </div>
+            </body>
+            </html>
+            """
+
             try:
                 resend.Emails.send(
                     {
                         "from": "Neo AI <onboarding@resend.dev>",
                         "to": eposta,
-                        "subject": "Neo AI - Giriş Kodunuz",
-                        "html": f"""
-                        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f172a; color: #ffffff; border-radius: 12px;">
-                            <h2 style="color: #38bdf8;">Neo AI Giriş</h2>
-                            <p>Doğrulama kodunuz:</p>
-                            <h1 style="color: #a855f7; letter-spacing: 5px;">{kod}</h1>
-                            <hr style="border-color: #334155;" />
-                            <p style="font-size: 12px; color: #94a3b8;">Bu e-posta otomatiktir, lütfen yanıtlamayınız (noreply).</p>
-                        </div>
-                    """,
+                        "subject": "Neo - E-posta Doğrulama Kodunuz",
+                        "html": html_content,
                     }
                 )
-                st.success("Doğrulama kodu e-postanıza otomatik olarak gönderildi!")
+                st.success("Doğrulama kodu e-postanıza harika bir tasarımla gönderildi!")
             except Exception as e:
                 st.error(f"E-posta Gönderim Hatası: {e}")
         else:
