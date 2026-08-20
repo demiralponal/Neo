@@ -8,11 +8,18 @@ st.set_page_config(page_title="Neo AI", page_icon="⚡", layout="centered")
 
 # Secrets Yapılandırmaları
 RESEND_KEY = st.secrets.get("RESEND_API_KEY", "")
+GEMINI_KEY = st.secrets.get("GEMINI_API_KEY", "")
+
 resend.api_key = RESEND_KEY
 
-if "GEMINI_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("gemini-1.5-flash")
+# Gemini Yapılandırması
+if GEMINI_KEY:
+    try:
+        genai.configure(api_key=GEMINI_KEY)
+        # Güncel model ismi
+        model = genai.GenerativeModel("gemini-1.5-flash-latest")
+    except Exception as e:
+        st.error(f"Gemini Başlatma Hatası: {e}")
 
 # Session State
 if "dogrulama_kodu" not in st.session_state:
@@ -25,7 +32,6 @@ if "messages" not in st.session_state:
 # --- AŞAMA 1: GİRİŞ EKRANI ---
 if not st.session_state.giris_basarili:
 
-    # Sitede Görünecek Giriş Arayüzü Tasarımı
     st.markdown(
         """
     <style>
@@ -65,7 +71,6 @@ if not st.session_state.giris_basarili:
                 kod = str(random.randint(100000, 999999))
                 st.session_state.dogrulama_kodu = kod
 
-                # Entegre Edilen Yeni E-Posta Şablonu
                 html_content = f"""
                 <!DOCTYPE html>
                 <html lang="tr">
@@ -86,7 +91,7 @@ if not st.session_state.giris_basarili:
                 """
 
                 try:
-                    response = resend.Emails.send(
+                    resend.Emails.send(
                         {
                             "from": "Neo AI <onboarding@resend.dev>",
                             "to": eposta,
@@ -135,4 +140,6 @@ else:
                         {"role": "assistant", "content": bot_reply}
                     )
                 except Exception as e:
-                    st.error(f"Hata oluştu: {e}")
+                    st.error(
+                        f"Gemini API Hatası: {e}. Lütfen Secrets'taki GEMINI_API_KEY değerini kontrol edin."
+                    )
